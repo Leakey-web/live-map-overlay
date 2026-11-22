@@ -15,9 +15,17 @@ window.OVERLAY_CONFIG = {
   // 地圖設定（單位 px，以 1920x1080 畫面計算）
   map: {
     zoom: 15, // 政府開放圖資最大為 15
+    scale: 2, // 道路與路名放大倍率，可用 1 到 3，越大越模糊
     right: 50, // 與右側 QR Code 對齊
     bottom: 270, // 放在 QR Code 上方。若要貼齊右下角，改成 40
     tileUrl: 'https://wmts.nlsc.gov.tw/wmts/EMAP6_OPENDATA/default/GoogleMapsCompatible/{z}/{y}/{x}',
+  },
+
+  // 行駛路線粗線：畫出車子實際走過的路。OBS 重新整理來源後會清空
+  trail: {
+    enabled: true,
+    color: '#2453E6',
+    width: 9,
   },
 
   // 預設 GPS 延遲（毫秒），用來對齊 4G 背包的畫面延遲
