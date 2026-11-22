@@ -2,14 +2,9 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<title>車掃直播圖層</title>
+<title>車掃小地圖</title>
 <style>
-  :root {
-    --ring: #2453E6;
-    --card-from: rgba(36, 83, 230, .94);
-    --card-to: rgba(22, 48, 150, .94);
-    --font: "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", "Heiti TC", sans-serif;
-  }
+  :root { --ring: #2453E6; }
   * { box-sizing: border-box; }
   html, body {
     margin: 0;
@@ -17,40 +12,36 @@
     height: 1080px;
     overflow: hidden;
     background: transparent;
-    font-family: var(--font);
   }
 
-  /* 地圖：正圓加底部細條。底部細條用來完整保留 Google 標誌與版權標示 */
   #mapShell {
     position: absolute;
     width: 396px;
-    height: 436px;
+    height: 396px;
+    border-radius: 50%;
+    background: var(--ring);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, .42);
     opacity: 0;
     transition: opacity .6s ease;
   }
   #mapShell.on { opacity: 1; }
-  .ring-circle, .ring-base {
-    position: absolute;
-    left: 0;
-    background: var(--ring);
-    box-shadow: 0 8px 22px rgba(0, 0, 0, .42);
-  }
-  .ring-circle { top: 20px; width: 396px; height: 396px; border-radius: 50%; }
-  .ring-base { top: 388px; width: 396px; height: 48px; border-radius: 12px; }
   .map-clip {
     position: absolute;
     left: 8px;
     top: 8px;
     width: 380px;
-    height: 420px;
-    background: #e8eaed;
-    clip-path: path("M190 20a190 190 0 1 1 0 380a190 190 0 1 1 0-380Z M4 388H376a4 4 0 0 1 4 4V416a4 4 0 0 1-4 4H4a4 4 0 0 1-4-4V392a4 4 0 0 1 4-4Z");
+    height: 380px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #f3f1ec;
+    isolation: isolate;
   }
-  #map { width: 100%; height: 100%; }
+  #tiles { position: absolute; left: 0; top: 0; will-change: transform; }
+  .tile { position: absolute; display: block; width: 256px; height: 256px; user-select: none; }
   #avatar, #avatarDot {
     position: absolute;
     left: 166px;
-    top: 186px;
+    top: 166px;
     width: 64px;
     height: 64px;
     pointer-events: none;
@@ -59,7 +50,7 @@
   #avatarDot {
     display: none;
     left: 182px;
-    top: 202px;
+    top: 182px;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -67,72 +58,6 @@
     border: 5px solid #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
   }
-
-  /* 下一站字卡 */
-  #nextStop {
-    position: absolute;
-    min-width: 420px;
-    max-width: 760px;
-    opacity: 0;
-    transform: translateY(14px);
-    transition: opacity .35s ease, transform .35s ease;
-  }
-  #nextStop.on { opacity: 1; transform: none; }
-  .next-tag {
-    display: inline-block;
-    padding: 7px 16px;
-    background: #111;
-    color: #fff;
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: .02em;
-  }
-  .next-main {
-    padding: 15px 34px;
-    background: linear-gradient(100deg, var(--card-from), var(--card-to));
-    color: #fff;
-    font-size: 42px;
-    font-weight: 800;
-    line-height: 1.25;
-    text-align: center;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, .35);
-  }
-  #nextText { display: inline-block; transition: opacity .2s ease, transform .2s ease; }
-  #nextText.swap { opacity: 0; transform: translateY(-8px); }
-
-  /* 路線跑馬燈 */
-  #marquee {
-    position: absolute;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    height: 60px;
-    padding: 0 26px 0 12px;
-    border-radius: 30px;
-    background: #fff;
-    color: #111;
-    box-shadow: 0 5px 16px rgba(0, 0, 0, .3);
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: opacity .35s ease, transform .35s ease;
-  }
-  #marquee.on { opacity: 1; transform: none; }
-  .mq-icon {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: var(--ring);
-  }
-  .mq-view { overflow: hidden; white-space: nowrap; min-width: 0; }
-  .mq-track { display: inline-flex; font-size: 30px; font-weight: 700; will-change: transform; }
-  .mq-track span + span { display: none; padding-left: 90px; }
-  .mq-track.scroll { animation: mq var(--mq-time, 12s) linear infinite; }
-  .mq-track.scroll span { padding-right: 0; }
-  .mq-track.scroll span + span { display: inline; }
-  @keyframes mq { to { transform: translateX(var(--mq-dist, -50%)); } }
 
   /* 只在 ?debug=1 時顯示，正式直播不會出現 */
   #debug {
@@ -144,28 +69,14 @@
     border-radius: 8px;
     background: rgba(0, 0, 0, .78);
     color: #7dffa8;
-    font: 18px/1.5 ui-monospace, Menlo, Consolas, monospace;
+    font: 18px/1.5 ui-monospace, Menlo, Consolas, "PingFang TC", "Microsoft JhengHei", monospace;
     white-space: pre;
   }
 </style>
 </head>
 <body>
-  <div id="marquee" aria-live="polite">
-    <div class="mq-icon" aria-hidden="true">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V11a4 4 0 0 1 4-4h10"/><path d="m15 3 4 4-4 4"/></svg>
-    </div>
-    <div class="mq-view"><div class="mq-track" id="mqTrack"><span id="mqA"></span><span id="mqB" aria-hidden="true"></span></div></div>
-  </div>
-
-  <section id="nextStop" aria-live="polite">
-    <div class="next-tag">NEXT STOP 下一站 ▸▸</div>
-    <div class="next-main"><span id="nextText"></span></div>
-  </section>
-
   <div id="mapShell">
-    <div class="ring-circle"></div>
-    <div class="ring-base"></div>
-    <div class="map-clip"><div id="map"></div></div>
+    <div class="map-clip"><div id="tiles"></div></div>
     <img id="avatar" alt="">
     <div id="avatarDot"></div>
   </div>
@@ -181,21 +92,13 @@
     const hash = new URLSearchParams(location.hash.slice(1));
     const query = new URLSearchParams(location.search);
     const DEMO = query.has('demo');
-    const forceCards = query.has('cards');
 
     const pullKey = hash.get('pull') || C.rtirlPullKey || '';
-    const room = hash.get('room') || '';
     const delayRaw = Number(hash.get('delay') ?? C.gpsDelayMs ?? 0);
     const delayMs = Number.isFinite(delayRaw) ? Math.min(Math.max(delayRaw, 0), 30000) : 0;
 
-    const features = {
-      map: C.features?.map !== false,
-      nextStop: forceCards || !!C.features?.nextStop,
-      marquee: forceCards || !!C.features?.marquee,
-    };
-
     const $ = (id) => document.getElementById(id);
-    const status = { gps: '等待中', map: '未啟動', firebase: features.nextStop || features.marquee ? '未連線' : '未使用' };
+    const status = { gps: '等待中', map: '等待 GPS' };
     let lastFixAt = 0;
 
     const loadScript = (src) => new Promise((resolve, reject) => {
@@ -214,24 +117,13 @@
       }
     }
 
-    function applyTheme() {
-      const t = C.theme || {};
-      const root = document.documentElement.style;
-      if (t.ring) root.setProperty('--ring', t.ring);
-      if (t.cardFrom) root.setProperty('--card-from', t.cardFrom);
-      if (t.cardTo) root.setProperty('--card-to', t.cardTo);
-
-      const m = C.map || {};
-      const k = C.cards || {};
-      const right = m.right ?? 50;
-      const bottom = m.bottom ?? 270;
-      $('mapShell').style.right = right + 'px';
-      $('mapShell').style.bottom = bottom + 'px';
-      $('nextStop').style.left = (k.nextStopLeft ?? 240) + 'px';
-      $('nextStop').style.bottom = bottom + 'px';
-      $('marquee').style.left = (k.marqueeLeft ?? 860) + 'px';
-      $('marquee').style.top = (k.marqueeTop ?? 44) + 'px';
-      $('marquee').style.maxWidth = (k.marqueeMaxWidth ?? 680) + 'px';
+    function applyLayout() {
+      if (C.theme?.ring) document.documentElement.style.setProperty('--ring', C.theme.ring);
+      $('mapShell').style.right = (C.map?.right ?? 50) + 'px';
+      $('mapShell').style.bottom = (C.map?.bottom ?? 270) + 'px';
+      const avatar = $('avatar');
+      avatar.onerror = () => { avatar.style.display = 'none'; $('avatarDot').style.display = 'block'; };
+      avatar.src = C.avatar || './avatar.png';
     }
 
     /* ---------- GPS 處理：濾雜訊、延遲播放、平滑移動 ---------- */
@@ -283,74 +175,125 @@
       return { lat: a.lat + (b.lat - a.lat) * k, lng: a.lng + (b.lng - a.lng) * k };
     }
 
-    /* ---------- Google 地圖 ---------- */
-    let map = null;
-    let mapFailed = false;
+    /* ---------- 地圖圖磚：不需金鑰，也不依賴 WebGL ---------- */
+    const TILE_SIZE = 256;
+    const VIEW_SIZE = 380;
+    const MAX_ZOOM = 15; // 開放圖資的最大層級，超過只會得到空白圖磚
+    const REVEAL_WAIT_MS = 2500;
+
+    const zoom = Math.min(Math.round(C.map?.zoom ?? MAX_ZOOM), MAX_ZOOM);
+    const worldSize = TILE_SIZE * 2 ** zoom;
+    const tileTemplate = C.map?.tileUrl
+      || 'https://wmts.nlsc.gov.tw/wmts/EMAP6_OPENDATA/default/GoogleMapsCompatible/{z}/{y}/{x}';
+    const tiles = new Map();
+    const layer = $('tiles');
+    let origin = null;
+    let rangeKey = '';
+    let viewKeys = [];
+    let revealTimer = null;
     let revealed = false;
 
+    const tileSrc = (x, y, attempt) => {
+      const url = tileTemplate.replace('{z}', zoom).replace('{y}', y).replace('{x}', x);
+      return attempt ? `${url}?retry=${attempt}` : url;
+    };
+
+    function project({ lat, lng }) {
+      const sin = Math.sin((lat * Math.PI) / 180);
+      return {
+        x: ((lng + 180) / 360) * worldSize,
+        y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * worldSize,
+      };
+    }
+
     function reveal() {
-      if (revealed || mapFailed || !shown) return;
+      if (revealed) return;
       revealed = true;
+      clearTimeout(revealTimer);
       $('mapShell').classList.add('on');
     }
 
-    async function startMap() {
-      const avatar = $('avatar');
-      avatar.onerror = () => { avatar.style.display = 'none'; $('avatarDot').style.display = 'block'; };
-      avatar.src = C.avatar || './avatar.png';
-
-      // 地圖出錯時直接隱藏，避免 Google 的錯誤視窗出現在直播畫面
-      const failMap = (why) => {
-        status.map = why;
-        if (DEMO) return;
-        mapFailed = true;
-        $('mapShell').classList.remove('on');
-      };
-      window.gm_authFailure = () => failMap('金鑰錯誤或網址未授權');
-      setInterval(() => {
-        if (!mapFailed && $('map').querySelector('.dismissButton, .gm-err-container')) {
-          failMap('Google 地圖回報錯誤，請檢查金鑰與帳單');
-        }
-      }, 500);
-
-      const key = C.googleMapsApiKey || '';
-      if (!key && !DEMO) { status.map = '尚未填 Google Maps Key'; return; }
-
-      const params = new URLSearchParams({
-        v: 'quarterly', language: 'zh-TW', region: 'TW', loading: 'async', callback: '__mapsReady',
-      });
-      if (key) params.set('key', key);
-      status.map = '載入中';
-      const mapsReady = new Promise((resolve) => { window.__mapsReady = resolve; });
-      await loadWithRetry('https://maps.googleapis.com/maps/api/js?' + params, 'map');
-      await mapsReady;
-      const { Map } = await google.maps.importLibrary('maps');
-
-      while (!shown) await wait(100);
-
-      const hideNoise = (C.map?.hidePoi ?? true) ? [
-        { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-        { featureType: 'transit', stylers: [{ visibility: 'off' }] },
-      ] : [];
-
-      map = new Map($('map'), {
-        center: shown,
-        zoom: C.map?.zoom ?? 17,
-        disableDefaultUI: true,
-        gestureHandling: 'none',
-        keyboardShortcuts: false,
-        clickableIcons: false,
-        backgroundColor: '#e8eaed',
-        styles: hideNoise,
-      });
+    function onTileReady() {
       status.map = '正常';
-      google.maps.event.addListenerOnce(map, 'tilesloaded', reveal);
-      setTimeout(reveal, 4000);
+      if (revealed) return;
+      if (!revealTimer) revealTimer = setTimeout(reveal, REVEAL_WAIT_MS);
+      if (viewKeys.every((k) => tiles.get(k)?.ready)) reveal();
+    }
+
+    function addTile(x, y) {
+      const key = `${x}/${y}`;
+      if (tiles.has(key)) return;
+      const img = new Image();
+      const rec = { img, ready: false, attempts: 0, retry: null };
+      img.className = 'tile';
+      img.alt = '';
+      img.draggable = false;
+      img.style.left = x * TILE_SIZE - origin.x + 'px';
+      img.style.top = y * TILE_SIZE - origin.y + 'px';
+      img.onload = () => { rec.ready = true; onTileReady(); };
+      img.onerror = () => {
+        rec.attempts += 1;
+        status.map = '圖資載入失敗，重試中';
+        rec.retry = setTimeout(() => {
+          if (tiles.get(key) === rec) img.src = tileSrc(x, y, rec.attempts);
+        }, Math.min(1000 * 2 ** rec.attempts, 15000));
+      };
+      img.src = tileSrc(x, y, 0);
+      layer.appendChild(img);
+      tiles.set(key, rec);
+    }
+
+    function syncTiles(p) {
+      const cell = (v) => Math.floor(v / TILE_SIZE);
+      const half = VIEW_SIZE / 2;
+      const view = { x0: cell(p.x - half), x1: cell(p.x + half), y0: cell(p.y - half), y1: cell(p.y + half) };
+      const key = `${view.x0},${view.x1},${view.y0},${view.y1}`;
+      if (key === rangeKey) return;
+      rangeKey = key;
+
+      // 多載入一圈，車子移動時不會看到空白
+      viewKeys = [];
+      for (let y = view.y0 - 1; y <= view.y1 + 1; y++) {
+        for (let x = view.x0 - 1; x <= view.x1 + 1; x++) {
+          addTile(x, y);
+          if (x >= view.x0 && x <= view.x1 && y >= view.y0 && y <= view.y1) viewKeys.push(`${x}/${y}`);
+        }
+      }
+      for (const [k, rec] of tiles) {
+        const [x, y] = k.split('/').map(Number);
+        if (x < view.x0 - 2 || x > view.x1 + 2 || y < view.y0 - 2 || y > view.y1 + 2) {
+          clearTimeout(rec.retry);
+          rec.img.onload = rec.img.onerror = null;
+          rec.img.remove();
+          tiles.delete(k);
+        }
+      }
+    }
+
+    function renderMap() {
+      const p = project(shown);
+      if (!origin) {
+        origin = { x: Math.floor(p.x / TILE_SIZE) * TILE_SIZE, y: Math.floor(p.y / TILE_SIZE) * TILE_SIZE };
+        status.map = '載入中';
+      }
+      syncTiles(p);
+      const tx = VIEW_SIZE / 2 - (p.x - origin.x);
+      const ty = VIEW_SIZE / 2 - (p.y - origin.y);
+      layer.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0)`;
     }
 
     let prevFrame = 0;
     function frame(now) {
       requestAnimationFrame(frame);
+      tick(now);
+    }
+    // 來源被隱藏時瀏覽器可能暫停動畫，用計時器確保定位與地圖不中斷
+    setInterval(() => {
+      const now = performance.now();
+      if (now - prevFrame >= 500) tick(now);
+    }, 500);
+
+    function tick(now) {
       if (now - prevFrame < 33) return; // 約 30fps，降低 OBS 負擔
       const dt = Math.min(now - prevFrame, 250);
       prevFrame = now;
@@ -364,7 +307,7 @@
         const alpha = 1 - Math.exp(-dt / tau);
         shown = { lat: shown.lat + (goal.lat - shown.lat) * alpha, lng: shown.lng + (goal.lng - shown.lng) * alpha };
       }
-      if (map) map.setCenter(shown);
+      renderMap();
     }
 
     /* ---------- GPS 來源 ---------- */
@@ -379,8 +322,8 @@
 
     function startDemoGps() {
       const route = [
-        [22.5032, 120.3925], [22.5046, 120.3929], [22.5060, 120.3934], [22.5073, 120.3938],
-        [22.5078, 120.3952], [22.5083, 120.3968], [22.5096, 120.3972], [22.5110, 120.3976],
+        [22.6265, 120.2960], [22.6280, 120.2975], [22.6295, 120.2990], [22.6315, 120.3020],
+        [22.6330, 120.3035], [22.6345, 120.3020], [22.6330, 120.2990], [22.6300, 120.2965],
       ];
       let i = 0;
       let k = 0;
@@ -388,88 +331,9 @@
         const a = route[i];
         const b = route[(i + 1) % route.length];
         onFix(a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k);
-        k += 0.14;
+        k += 0.08;
         if (k >= 1) { k = 0; i = (i + 1) % route.length; }
       }, 1000);
-    }
-
-    /* ---------- 字卡 ---------- */
-    let currentNext = null;
-    let swapTimer = null;
-
-    function applyNextStop(text, visible) {
-      const card = $('nextStop');
-      const el = $('nextText');
-      const hasText = !!text;
-      if (!features.nextStop || !visible || !hasText) {
-        card.classList.remove('on');
-        if (hasText) { el.textContent = text; currentNext = text; }
-        return;
-      }
-      const wasOn = card.classList.contains('on');
-      if (wasOn && text !== currentNext) {
-        clearTimeout(swapTimer);
-        el.classList.add('swap');
-        swapTimer = setTimeout(() => { el.textContent = text; el.classList.remove('swap'); }, 200);
-      } else {
-        el.textContent = text;
-      }
-      currentNext = text;
-      card.classList.add('on');
-    }
-
-    let currentMarquee = null;
-    function applyMarquee(text, visible) {
-      const box = $('marquee');
-      if (!features.marquee || !visible || !text) { box.classList.remove('on'); return; }
-      box.classList.add('on');
-      if (text === currentMarquee) return;
-      currentMarquee = text;
-
-      const track = $('mqTrack');
-      track.classList.remove('scroll');
-      $('mqA').textContent = text;
-      $('mqB').textContent = text;
-      requestAnimationFrame(() => {
-        const view = track.parentElement;
-        const w = $('mqA').getBoundingClientRect().width;
-        if (w > view.clientWidth + 1) {
-          const dist = w + 90;
-          track.style.setProperty('--mq-dist', -dist + 'px');
-          track.style.setProperty('--mq-time', Math.max(dist / 90, 6) + 's');
-          track.classList.add('scroll');
-        }
-      });
-    }
-
-    function applyState(s) {
-      s = s || {};
-      applyNextStop(s.nextStop || '', s.nextStopVisible !== false);
-      applyMarquee(s.marqueeText || '', s.marqueeVisible !== false);
-    }
-
-    async function startCards() {
-      if (!features.nextStop && !features.marquee) return;
-
-      if (DEMO) {
-        status.firebase = '示範模式';
-        const read = () => { try { return JSON.parse(localStorage.getItem('overlay-demo-state') || '{}'); } catch { return {}; } };
-        applyState(read());
-        new BroadcastChannel('overlay-demo').onmessage = (e) => applyState(e.data);
-        return;
-      }
-
-      if (!C.firebase?.databaseURL) { status.firebase = '尚未填 Firebase 設定'; return; }
-      if (!room) { status.firebase = 'OBS 網址缺少 room'; return; }
-
-      const base = 'https://www.gstatic.com/firebasejs/10.14.1/';
-      await loadWithRetry(base + 'firebase-app-compat.js', 'firebase');
-      await loadWithRetry(base + 'firebase-database-compat.js', 'firebase');
-      const app = firebase.initializeApp(C.firebase, 'overlay');
-      const db = app.database();
-      db.ref('.info/connected').on('value', (snap) => { status.firebase = snap.val() ? '連線中' : '重新連線中'; });
-      db.ref('rooms/' + room).on('value', (snap) => applyState(snap.val()),
-        (err) => { status.firebase = '讀取失敗：' + err.code; });
     }
 
     /* ---------- 除錯資訊（只有 ?debug=1 會顯示） ---------- */
@@ -479,15 +343,14 @@
       box.style.display = 'block';
       setInterval(() => {
         const age = lastFixAt ? Math.round((Date.now() - lastFixAt) / 1000) + ' 秒前' : '尚無';
-        box.textContent = `GPS：${status.gps}（最後更新 ${age}）\n地圖：${status.map}\nFirebase：${status.firebase}\n延遲：${delayMs} ms`;
+        box.textContent = `GPS：${status.gps}（最後更新 ${age}）\n地圖：${status.map}\n延遲：${delayMs} ms`;
       }, 500);
     }
 
-    applyTheme();
+    applyLayout();
     startDebug();
     requestAnimationFrame(frame);
-    if (features.map) { startGps(); startMap(); }
-    startCards();
+    startGps();
   })();
   </script>
 </body>

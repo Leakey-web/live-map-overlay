@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10131c">
 <meta name="robots" content="noindex">
-<title>車掃遙控面板</title>
+<title>小地圖設定</title>
 <style>
   :root {
     --bg: #10131c;
@@ -14,9 +14,6 @@
     --text: #f3f5fa;
     --muted: #a3adc4;
     --accent: #2f60f2;
-    --ok: #35d07f;
-    --bad: #ff5c5c;
-    --warn: #ffc247;
     color-scheme: dark;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -25,20 +22,18 @@
     min-height: 100dvh;
     background: var(--bg);
     color: var(--text);
-    font: 17px/1.45 "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+    font: 17px/1.5 "PingFang TC", "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
   }
   [hidden] { display: none !important; }
-  main { max-width: 560px; margin: 0 auto; padding: 12px 14px calc(32px + env(safe-area-inset-bottom)); }
-  h1 { margin: 0; font-size: 21px; }
-  h2 { margin: 0; font-size: 19px; }
+  main { max-width: 620px; margin: 0 auto; padding: 22px 16px calc(36px + env(safe-area-inset-bottom)); }
+  h1 { margin: 0; font-size: 25px; }
+  h2 { margin: 0 0 10px; font-size: 19px; }
   p { margin: 0; }
   .muted { color: var(--muted); font-size: 15px; }
-
-  .panel { margin-top: 12px; padding: 15px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
-  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .stack { display: grid; gap: 10px; margin-top: 12px; }
-
-  input[type=text], input[type=password], input[type=number], textarea {
+  .panel { margin-top: 14px; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+  .stack { display: grid; gap: 12px; }
+  label { display: grid; gap: 6px; font-size: 15px; color: var(--muted); }
+  input {
     width: 100%;
     padding: 13px 14px;
     border: 1px solid var(--line);
@@ -46,65 +41,38 @@
     background: #0d1018;
     color: var(--text);
     font: inherit;
-    font-size: 18px; /* 避免 iOS 聚焦時自動放大 */
+    font-size: 18px;
   }
-  textarea { min-height: 118px; resize: vertical; }
-  input:focus-visible, textarea:focus-visible, button:focus-visible { outline: 3px solid #8fb0ff; outline-offset: 1px; }
-  label.field { display: grid; gap: 6px; font-size: 15px; color: var(--muted); }
-
-  button {
-    min-height: 56px;
+  button, .button {
+    display: block;
     width: 100%;
-    padding: 10px 14px;
+    min-height: 52px;
+    padding: 13px 14px;
     border: 0;
     border-radius: 11px;
     background: var(--accent);
     color: #fff;
     font: inherit;
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 700;
+    text-align: center;
+    text-decoration: none;
     cursor: pointer;
-    touch-action: manipulation;
   }
-  button:active { filter: brightness(.85); }
-  button.secondary { background: #2a3144; }
-  button.small { min-height: 44px; font-size: 16px; }
-
-  /* 目前畫面 */
-  .live { position: sticky; top: 0; z-index: 5; margin: -12px -14px 0; padding: 12px 14px; background: rgba(16, 19, 28, .96); border-bottom: 1px solid var(--line); }
-  .conn { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 700; }
-  .led { width: 12px; height: 12px; border-radius: 50%; background: var(--warn); }
-  .conn.ok .led { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
-  .conn.bad .led { background: var(--bad); }
-  .now { display: grid; grid-template-columns: 62px 1fr auto; gap: 3px 8px; align-items: baseline; margin-top: 8px; }
-  .now b { min-width: 0; overflow-wrap: anywhere; font-size: 18px; }
-  .now .tag { font-size: 13px; color: var(--ok); }
-  .now .tag.off { color: var(--muted); }
-
-  /* 開關 */
-  .switch { position: relative; display: inline-flex; align-items: center; gap: 9px; min-height: 44px; font-size: 15px; color: var(--muted); cursor: pointer; flex: none; }
-  .switch input { position: absolute; opacity: 0; width: 62px; height: 36px; right: 0; margin: 0; cursor: pointer; }
-  .track { position: relative; width: 62px; height: 36px; border-radius: 18px; background: #454e66; transition: background .15s; }
-  .track::after { content: ""; position: absolute; left: 3px; top: 3px; width: 30px; height: 30px; border-radius: 50%; background: #fff; transition: transform .15s; }
-  .switch input:checked + .track { background: var(--ok); }
-  .switch input:checked + .track::after { transform: translateX(26px); }
-  .switch input:focus-visible + .track { outline: 3px solid #8fb0ff; outline-offset: 2px; }
-
-  /* 路線清單 */
-  .stops { display: grid; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
-  .stops button { display: flex; align-items: center; gap: 12px; min-height: 60px; background: #262d40; text-align: left; font-size: 20px; }
-  .stops button .n { flex: none; width: 30px; color: var(--muted); font-size: 15px; text-align: right; }
-  .stops button.current { background: var(--accent); }
-  .stops button.current .n { color: #fff; }
-
-  .code { display: block; max-height: 92px; overflow: auto; padding: 10px; border-radius: 8px; background: #0d1018; color: #b9c8ff; font: 13px/1.4 ui-monospace, Menlo, monospace; overflow-wrap: anywhere; }
-  .alert { margin-top: 12px; padding: 11px 13px; border-radius: 10px; background: #3a2f12; color: #ffe2a0; font-size: 15px; }
-
+  .secondary { background: #2a3144; }
+  button:active, .button:active { filter: brightness(.85); }
+  input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #8fb0ff; outline-offset: 1px; }
+  .code { display: block; max-height: 110px; overflow: auto; padding: 11px; border-radius: 8px; background: #0d1018; color: #b9c8ff; font: 13px/1.45 ui-monospace, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+  .alert { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: #3a2f12; color: #ffe2a0; font-size: 15px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+  tr:first-child td { border-top: 0; }
+  td:first-child { width: 58%; padding-right: 10px; color: var(--muted); }
+  td:last-child { font-weight: 700; }
   #toast {
     position: fixed;
     left: 50%;
     bottom: calc(20px + env(safe-area-inset-bottom));
-    z-index: 10;
     max-width: calc(100vw - 32px);
     padding: 11px 18px;
     border-radius: 24px;
@@ -118,124 +86,51 @@
     transition: opacity .18s, transform .18s;
   }
   #toast.show { opacity: 1; transform: translate(-50%, 0); }
-  #toast.err { background: var(--bad); color: #fff; }
+  #toast.err { background: #ff5c5c; color: #fff; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 <main>
-  <!-- 密碼 -->
-  <section id="gateView" hidden>
-    <div class="panel" style="margin-top:18vh">
-      <h1>車掃遙控面板</h1>
-      <form id="gateForm" class="stack">
-        <label class="field">請輸入密碼
-          <input id="gateInput" type="password" autocomplete="current-password" required>
-        </label>
-        <p id="gateError" class="muted" role="alert" style="color:var(--bad)" hidden>密碼錯誤，請再試一次</p>
-        <button type="submit">進入</button>
-      </form>
+  <h1>小地圖設定</h1>
+  <p class="muted" style="margin-top:6px">任何電腦都能開這頁產生 OBS 網址。Pull Key 只在這個瀏覽器內處理，不會上傳或儲存。</p>
+
+  <form id="setupForm" class="panel stack">
+    <label>RealtimeIRL Pull Key
+      <input id="pull" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+    </label>
+    <label>GPS 延遲（秒），用來對齊 4G 背包畫面
+      <input id="delay" type="number" inputmode="decimal" min="0" max="30" step="0.1" required>
+    </label>
+    <button type="submit">產生 OBS 網址</button>
+  </form>
+
+  <section id="result" hidden>
+    <div class="panel stack">
+      <h2 style="margin:0">OBS 瀏覽器來源網址</h2>
+      <code class="code" id="obsUrl"></code>
+      <button id="copy" type="button">複製網址</button>
+      <a id="test" class="button secondary" target="_blank" rel="noopener">開啟測試畫面</a>
     </div>
+    <div class="alert">這個網址含有即時定位權限，請勿貼到公開群組、直播留言或截圖外傳。</div>
   </section>
 
-  <!-- 連結設定 -->
-  <section id="setupView" hidden>
-    <div class="row" style="padding-top:6px">
-      <h1>連結設定</h1>
-      <button id="setupBack" class="secondary small" style="width:auto" hidden>回面板</button>
-    </div>
-    <p class="muted" style="margin-top:6px">在這裡產生 OBS 與小編要用的網址。資料只在這支裝置上處理，不會上傳。</p>
-    <div id="defaultPwWarn" class="alert" hidden>你還在使用預設密碼，請先修改 config.js 的 adminPassword。</div>
-
-    <div class="panel">
-      <div class="stack" style="margin-top:0">
-        <label class="field">RealtimeIRL Pull Key
-          <input id="setupPull" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
-        </label>
-        <label class="field">GPS 延遲（秒），對齊 4G 背包畫面
-          <input id="setupDelay" type="number" inputmode="decimal" min="0" max="30" step="0.1">
-        </label>
-        <button id="setupMake">產生網址</button>
-      </div>
-    </div>
-
-    <div id="setupResult" hidden>
-      <div class="panel">
-        <h2>OBS 瀏覽器來源網址</h2>
-        <div class="stack">
-          <code class="code" id="obsUrl"></code>
-          <button class="secondary small" data-copy="obsUrl">複製 OBS 網址</button>
-        </div>
-      </div>
-      <div class="panel">
-        <h2>隨車小編網址</h2>
-        <div class="stack">
-          <code class="code" id="adminUrl"></code>
-          <button class="secondary small" data-copy="adminUrl">複製小編網址</button>
-          <a id="openPanel" href="#" style="color:#9db7ff;text-align:center;padding:8px">開啟遙控面板</a>
-        </div>
-      </div>
-      <div class="alert">這兩個網址等同鑰匙，含即時定位與字卡控制權。請勿貼到公開群組或直播留言。</div>
-    </div>
+  <section class="panel stack">
+    <h2 style="margin:0">直播說明欄必貼文字</h2>
+    <p class="muted">地圖使用政府開放資料，每場直播都要把這段貼到說明欄，否則授權會失效。</p>
+    <code class="code" id="credit" style="white-space:pre-wrap"></code>
+    <button id="copyCredit" class="secondary" type="button">複製標示文字</button>
   </section>
 
-  <!-- 遙控面板 -->
-  <section id="panelView" hidden>
-    <div class="live">
-      <div class="row">
-        <h1>目前直播畫面</h1>
-        <span id="conn" class="conn"><span class="led"></span><span id="connText">連線中</span></span>
-      </div>
-      <div class="now">
-        <span class="muted">下一站</span><b id="nowNext">—</b><span id="nowNextTag" class="tag">顯示中</span>
-        <span class="muted">跑馬燈</span><b id="nowMarquee">—</b><span id="nowMarqueeTag" class="tag">顯示中</span>
-      </div>
-    </div>
-
-    <div id="featureWarn" class="alert" hidden></div>
-
-    <div class="panel">
-      <div class="row">
-        <h2>下一站</h2>
-        <label class="switch">顯示
-          <input id="nextToggle" type="checkbox" role="switch" aria-label="顯示下一站字卡">
-          <span class="track"></span>
-        </label>
-      </div>
-      <form id="nextForm" class="stack">
-        <input id="nextInput" type="text" maxlength="40" placeholder="輸入路名，例如：西溪路" enterkeyhint="send" aria-label="下一站路名">
-        <button type="submit">立即更新下一站</button>
-      </form>
-    </div>
-
-    <div class="panel">
-      <h2>預設路線</h2>
-      <p class="muted">點一下路名，直播畫面立刻切換。</p>
-      <ul id="stops" class="stops"></ul>
-      <details id="routeEditor" style="margin-top:12px">
-        <summary class="muted" style="min-height:36px;cursor:pointer">編輯路線清單</summary>
-        <div class="stack">
-          <textarea id="routeInput" placeholder="一行一站，例如：&#10;西溪路&#10;石化三路&#10;中芸三路" aria-label="路線清單"></textarea>
-          <button id="routeSave" class="secondary">儲存清單</button>
-        </div>
-      </details>
-    </div>
-
-    <div class="panel">
-      <div class="row">
-        <h2>上方跑馬燈</h2>
-        <label class="switch">顯示
-          <input id="marqueeToggle" type="checkbox" role="switch" aria-label="顯示跑馬燈">
-          <span class="track"></span>
-        </label>
-      </div>
-      <form id="marqueeForm" class="stack">
-        <textarea id="marqueeInput" maxlength="200" style="min-height:82px" placeholder="左轉【石化三路】→ 右轉中芸三路 → 直行林園北路" aria-label="跑馬燈文字"></textarea>
-        <button type="submit">更新跑馬燈</button>
-      </form>
-    </div>
-
-    <button id="openSetup" class="secondary small" style="margin-top:14px">連結設定</button>
+  <section class="panel">
+    <h2>OBS 瀏覽器來源設定</h2>
+    <table>
+      <tr><td>寬度 / 高度</td><td>1920 / 1080</td></tr>
+      <tr><td>自訂影格率</td><td>開啟，30</td></tr>
+      <tr><td>來源不顯示時關閉</td><td>不要勾</td></tr>
+      <tr><td>場景啟用時重新整理</td><td>不要勾</td></tr>
+      <tr><td>圖層順序與位置</td><td>最上層，0,0，不縮放</td></tr>
+    </table>
   </section>
 </main>
 <div id="toast" role="status"></div>
@@ -246,18 +141,7 @@
   'use strict';
 
   const C = window.OVERLAY_CONFIG || {};
-  const DEMO = new URLSearchParams(location.search).has('demo');
-  const K = { pw: 'overlay.adminPassword', room: 'overlay.room', route: 'overlay.route', demo: 'overlay-demo-state' };
   const $ = (id) => document.getElementById(id);
-
-  const store = {
-    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
-  };
-  const roomFromHash = () => {
-    const r = new URLSearchParams(location.hash.slice(1)).get('room') || '';
-    return /^[A-Za-z0-9_-]{32,64}$/.test(r) ? r : '';
-  };
 
   let toastTimer;
   function toast(msg, isError) {
@@ -268,254 +152,40 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), isError ? 3600 : 1500);
   }
-  function show(view) {
-    for (const id of ['gateView', 'setupView', 'panelView']) $(id).hidden = id !== view;
-    scrollTo(0, 0);
-  }
 
-  /* ---------- 密碼 ---------- */
-  const unlocked = () => !!C.adminPassword && store.get(K.pw) === C.adminPassword;
-  $('gateForm').addEventListener('submit', (e) => {
+  $('credit').textContent = C.mapCredit || '';
+  $('delay').value = String((C.gpsDelayMs ?? 3000) / 1000);
+
+  $('setupForm').addEventListener('submit', (e) => {
     e.preventDefault();
-    if ($('gateInput').value === C.adminPassword) {
-      store.set(K.pw, C.adminPassword);
-      $('gateInput').value = '';
-      $('gateError').hidden = true;
-      route();
-    } else {
-      $('gateError').hidden = false;
-      $('gateInput').select();
-    }
-  });
-
-  /* ---------- 連結設定 ---------- */
-  function newRoom() {
-    const bytes = crypto.getRandomValues(new Uint8Array(24));
-    return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  }
-  function openSetup() {
-    show('setupView');
-    $('setupBack').hidden = !(roomFromHash() || DEMO);
-    $('defaultPwWarn').hidden = C.adminPassword !== 'change-me';
-    if (!$('setupDelay').value) $('setupDelay').value = ((C.gpsDelayMs ?? 3000) / 1000).toString();
-    if (!$('setupPull').value) $('setupPull').value = C.rtirlPullKey || '';
-  }
-  $('setupMake').addEventListener('click', () => {
-    const pull = $('setupPull').value.trim();
-    if (!pull) { toast('請先貼上 Pull Key', true); $('setupPull').focus(); return; }
-    const seconds = Number($('setupDelay').value);
+    const pull = $('pull').value.trim();
+    const seconds = Number($('delay').value);
+    if (!pull) { toast('請先貼上 Pull Key', true); $('pull').focus(); return; }
     if (!Number.isFinite(seconds) || seconds < 0 || seconds > 30) { toast('延遲請填 0 到 30 秒', true); return; }
 
-    let room = roomFromHash() || store.get(K.room);
-    if (!room) { room = newRoom(); store.set(K.room, room); }
-
     const base = new URL('./', location.href.split('#')[0].split('?')[0]).href;
-    const obsHash = new URLSearchParams({ pull, room, delay: String(Math.round(seconds * 1000)) });
-    const adminLink = `${base}admin.html#room=${room}`;
-    $('obsUrl').textContent = `${base}overlay.html#${obsHash}`;
-    $('adminUrl').textContent = adminLink;
-    $('openPanel').href = adminLink;
-    $('setupResult').hidden = false;
-  });
-  $('openPanel').addEventListener('click', () => setTimeout(route, 0));
-  document.querySelectorAll('[data-copy]').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const text = $(btn.dataset.copy).textContent;
-      try { await navigator.clipboard.writeText(text); toast('已複製'); }
-      catch {
-        const range = document.createRange();
-        range.selectNodeContents($(btn.dataset.copy));
-        const sel = getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-        toast('請長按選取後複製', true);
-      }
-    });
-  });
-  $('openSetup').addEventListener('click', openSetup);
-  $('setupBack').addEventListener('click', () => show('panelView'));
-
-  /* ---------- 資料連線 ---------- */
-  let backend = null;
-  let online = false;
-  let state = {};
-
-  const loadScript = (src) => new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = resolve;
-    s.onerror = () => { s.remove(); reject(new Error('load failed')); };
-    document.head.appendChild(s);
+    const params = new URLSearchParams({ pull, delay: String(Math.round(seconds * 1000)) });
+    $('obsUrl').textContent = `${base}overlay.html#${params}`;
+    $('test').href = `${base}overlay.html?debug=1#${params}`;
+    $('result').hidden = false;
+    $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 
-  function setConn(kind, text) {
-    online = kind === 'ok';
-    $('conn').className = 'conn ' + kind;
-    $('connText').textContent = text;
-  }
-
-  function demoBackend() {
-    const ch = new BroadcastChannel('overlay-demo');
-    const read = () => { try { return JSON.parse(store.get(K.demo) || '{}'); } catch { return {}; } };
-    setConn('ok', '示範模式');
-    render(read());
-    return {
-      async write(patch) {
-        const next = { ...read(), ...patch, updatedAt: Date.now() };
-        store.set(K.demo, JSON.stringify(next));
-        ch.postMessage(next);
-        render(next);
-      },
-    };
-  }
-
-  async function firebaseBackend(room) {
-    const base = 'https://www.gstatic.com/firebasejs/10.14.1/';
-    await loadScript(base + 'firebase-app-compat.js');
-    await loadScript(base + 'firebase-database-compat.js');
-    const app = firebase.initializeApp(C.firebase, 'admin');
-    const db = app.database();
-    const ref = db.ref('rooms/' + room);
-    db.ref('.info/connected').on('value', (s) => {
-      if (s.val()) setConn('ok', '已連線'); else setConn('bad', '連線中斷');
-    });
-    ref.on('value', (s) => render(s.val() || {}), (err) => {
-      setConn('bad', '無權限');
-      toast('Firebase 讀取失敗：' + err.code, true);
-    });
-    return {
-      write: (patch) => ref.update({ ...patch, updatedAt: firebase.database.ServerValue.TIMESTAMP }),
-    };
-  }
-
-  async function connect() {
-    if (backend) return;
-    if (DEMO) { backend = demoBackend(); return; }
-    if (!C.firebase?.databaseURL) {
-      setConn('bad', '未設定');
-      warn('尚未填入 Firebase 設定，字卡遙控無法使用。只用小地圖時不需要這個面板。');
-      return;
-    }
+  async function copyFrom(id) {
     try {
-      backend = await firebaseBackend(roomFromHash());
+      await navigator.clipboard.writeText($(id).textContent);
+      toast('已複製');
     } catch {
-      setConn('bad', '載入失敗');
-      toast('無法載入 Firebase，請檢查網路後重新整理', true);
+      const range = document.createRange();
+      range.selectNodeContents($(id));
+      const sel = getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      toast('請手動複製已選取的文字', true);
     }
   }
-  function warn(text) { $('featureWarn').textContent = text; $('featureWarn').hidden = false; }
-
-  async function send(patch, okMessage) {
-    if (!backend) { toast('尚未連線，無法更新', true); return false; }
-    if (!online) toast('目前離線，恢復連線後會自動送出', true);
-    try {
-      await backend.write(patch);
-      if (online) toast(okMessage);
-      return true;
-    } catch (e) {
-      toast('更新失敗：' + (e.code || e.message), true);
-      return false;
-    }
-  }
-
-  /* ---------- 畫面 ---------- */
-  function render(s) {
-    state = s || {};
-    const nextOn = state.nextStopVisible !== false;
-    const marqueeOn = state.marqueeVisible !== false;
-    $('nowNext').textContent = state.nextStop || '—';
-    $('nowMarquee').textContent = state.marqueeText || '—';
-    $('nowNextTag').textContent = nextOn ? '顯示中' : '已隱藏';
-    $('nowNextTag').classList.toggle('off', !nextOn);
-    $('nowMarqueeTag').textContent = marqueeOn ? '顯示中' : '已隱藏';
-    $('nowMarqueeTag').classList.toggle('off', !marqueeOn);
-    $('nextToggle').checked = nextOn;
-    $('marqueeToggle').checked = marqueeOn;
-    if (document.activeElement !== $('marqueeInput') && !$('marqueeInput').value) {
-      $('marqueeInput').value = state.marqueeText || '';
-    }
-    highlightStop();
-  }
-
-  function routeList() {
-    return (store.get(K.route) || '').split('\n').map((x) => x.trim()).filter(Boolean);
-  }
-  function renderStops() {
-    const list = $('stops');
-    list.replaceChildren();
-    routeList().forEach((name, i) => {
-      const li = document.createElement('li');
-      const btn = document.createElement('button');
-      const n = document.createElement('span');
-      const label = document.createElement('span');
-      n.className = 'n';
-      n.textContent = i + 1;
-      label.textContent = name;
-      btn.append(n, label);
-      btn.dataset.name = name;
-      btn.addEventListener('click', () => send({ nextStop: name.slice(0, 40), nextStopVisible: true }, `已切換：${name}`));
-      li.append(btn);
-      list.append(li);
-    });
-    if (!list.children.length) {
-      const li = document.createElement('li');
-      li.className = 'muted';
-      li.textContent = '尚無路線，請在下方貼上清單。';
-      list.append(li);
-      $('routeEditor').open = true;
-    }
-    highlightStop();
-  }
-  function highlightStop() {
-    document.querySelectorAll('#stops button').forEach((b) => {
-      const isCurrent = b.dataset.name === state.nextStop;
-      b.classList.toggle('current', isCurrent);
-      if (isCurrent) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
-    });
-  }
-
-  $('nextForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = $('nextInput').value.trim();
-    if (!text) { toast('請輸入路名', true); return; }
-    if (await send({ nextStop: text, nextStopVisible: true }, '下一站已更新')) {
-      $('nextInput').value = '';
-      $('nextInput').blur();
-    }
-  });
-  $('marqueeForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = $('marqueeInput').value.trim();
-    if (!text) { toast('請輸入跑馬燈文字', true); return; }
-    if (await send({ marqueeText: text, marqueeVisible: true }, '跑馬燈已更新')) $('marqueeInput').blur();
-  });
-  $('nextToggle').addEventListener('change', (e) => {
-    send({ nextStopVisible: e.target.checked }, e.target.checked ? '下一站已顯示' : '下一站已隱藏');
-  });
-  $('marqueeToggle').addEventListener('change', (e) => {
-    send({ marqueeVisible: e.target.checked }, e.target.checked ? '跑馬燈已顯示' : '跑馬燈已隱藏');
-  });
-  $('routeSave').addEventListener('click', () => {
-    store.set(K.route, $('routeInput').value);
-    renderStops();
-    $('routeEditor').open = false;
-    toast('清單已儲存');
-  });
-
-  /* ---------- 進入點 ---------- */
-  function route() {
-    if (!unlocked()) { show('gateView'); $('gateInput').focus(); return; }
-    if (!DEMO && !roomFromHash()) { openSetup(); return; }
-    show('panelView');
-    $('routeInput').value = store.get(K.route) || '';
-    renderStops();
-    if (!DEMO && !C.features?.nextStop && !C.features?.marquee) {
-      warn('config.js 的字卡功能目前關閉，這裡的更新不會出現在直播畫面。');
-    }
-    connect();
-  }
-  addEventListener('hashchange', route);
-  route();
+  $('copy').addEventListener('click', () => copyFrom('obsUrl'));
+  $('copyCredit').addEventListener('click', () => copyFrom('credit'));
 })();
 </script>
 </body>
